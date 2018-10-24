@@ -65,7 +65,7 @@
    [[./diagrams/1d_low_freq.svg]]
 
    - Harmonic series of vibrational states
-   - Successive states characterised by wave vector
+   - States characterised by frequency and wave vector
 
    #+REVEAL: split
 
@@ -169,9 +169,20 @@
    [[./plots/heiming_Zr.png]]
 
    - Near-linear dispersion about Γ
-   - Three branches, degenerate in some directions
+   - Three branches (transverse/longitudinal), degenerate in some directions
    - Approaches zero at 2/3(1,1,1)
      - Ordered stacking in 111 direction: metastable 𝜔-phase
+
+** Acoustic / optic modes: ZnS
+   - ascii-phonons for ZnS with band structure
+
+   #+REVEAL: split
+
+   #+ATTR_HTML: :width 40%
+   [[./plots/shibuya2016.jpg]]
+
+   /Shibuya et al. (2016) APL Mater. **4** 104809/
+   - LO-TO splitting due to long-range polarisation effects
 
 ** Example: Zinc metal
    - Hexagonal structure
@@ -188,8 +199,36 @@
 
    - Linear dispersion assumed about Γ
    - Six branches, degeneracy in A direction
+   - More difficult to assign "acoustic" vs "optic" modes
+
 
 * Calculating harmonic phonons
+
+** The direct method
+
+** Density functional perturbation theory
+
+** Pros/cons
+
+   | Direct method                                               | DFPT                              |
+   |-------------------------------------------------------------+-----------------------------------|
+   | Linear scaling for large cells                              | Lower cost for small cells        |
+   | More tolerant of imperfect structure                        | No need to converge displacements |
+   | Exact force constants for qpts commensurate with supercell  | Large supercells very expensive   |
+   | Displacement calculations can be distributed over many jobs | Restart unavailable in VASP       |
+
+   - Both methods can be managed with Phonopy
+
+* Imaginary modes and zone-boundary transitions
+
+** Case study: Methylammonium lead iodide
+   - Indicate ordering over multiple unit cells
+   - To find ground state, build a supercell and follow the mode
+
+   #+ATTR_HTML: :width 80%
+   [[./plots/whalley2017.jpg]]
+
+   /Whalley et al. (2017) J. Chem. Phys. **146** 220901/
 
 * Dealing with anharmonicity: QHA
 
