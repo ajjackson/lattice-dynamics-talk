@@ -173,16 +173,64 @@
    - Approaches zero at 2/3(1,1,1)
      - Ordered stacking in 111 direction: metastable 𝜔-phase
 
-** Acoustic / optic modes: ZnS
-   - ascii-phonons for ZnS with band structure
+** Acoustic / optical modes: Zinc blende
+   [[./plots/zns_noloto.svg]]
+
+   - Degenerate "acoustic" branches based on collective behaviour of cell
+   - "Optic" branches based on interactions within cell
+     - So-named because they are active at long wave vector lengths (i.e. near Γ)
+     - This is requirement for detection with IR, Raman spectroscopy
+
+   #+REVEAL: split
+   #+REVEAL_HTML: <div class="column" style="float:left; width: 50%">
+   $$\mathbf{q} = \Gamma$$
+
+   [[./diagrams/noloto_gamma.gif]]
+   #+REVEAL_HTML: </div>
+
+   #+REVEAL_HTML: <div class="column" style="float:right; width: 50%">
+   $$\mathbf{q} = \mathrm{X}$$
+
+   [[./diagrams/noloto_X.gif]]
+   #+REVEAL_HTML: </div>
+
+   - Degenerate "acoustic" branches based on collective behaviour of cell
+   - "Optic" branches based on interactions within cell
+     - So-named because they are active at long wave vector lengths (i.e. near Γ)
+     - This is requirement for detection with IR, Raman spectroscopy
+
+   #+REVEAL: split
+   - A more realistic ZnS model
+     - LO-TO splitting due to long-range polarisation effects
+       - (Longitudinal Optic-Transverse Optic)
+     - In calculations we account for this using Born effective charges
+
+   [[./plots/zns_loto.svg]]
 
    #+REVEAL: split
 
-   #+ATTR_HTML: :width 40%
+   #+REVEAL_HTML: <div class="column" style="float:left; width: 50%">
+   $$\mathbf{q} \approx \Gamma$$
+
+   [[./diagrams/loto_gamma.gif]]
+   #+REVEAL_HTML: </div>
+
+   #+REVEAL_HTML: <div class="column" style="float:right; width: 50%">
+   $$\mathbf{q} = \mathrm{X}$$
+
+   [[./diagrams/loto_X.gif]]
+   #+REVEAL_HTML: </div>
+
+   #+ATTR_HTML: :width 30%
+   [[./plots/zns_loto.svg]]
+
+   #+REVEAL: split
+
+   #+ATTR_HTML: :width 30%
    [[./plots/shibuya2016.jpg]]
 
    /Shibuya et al. (2016) APL Mater. **4** 104809/
-   - LO-TO splitting due to long-range polarisation effects
+   - LO-TO splitting can lead to discontinuities at Γ
 
 ** Example: Zinc metal
    - Hexagonal structure
@@ -199,14 +247,44 @@
 
    - Linear dispersion assumed about Γ
    - Six branches, degeneracy in A direction
-   - More difficult to assign "acoustic" vs "optic" modes
+   - Optical modes appear as "reflection" in A of acoustic modes
 
 
 * Calculating harmonic phonons
 
+** Harmonic modes
+   - In the harmonic approximation, movements are based on Hooke's law
+     $$\mathbf{F} = - k \mathbf{u}$$
+     where $\mathbf{u}$ is a displacement
+   - The force constant matrix $\mathbf{\Phi}$ collects these "spring
+     constants" in each direction between each atom in the
+     system
+   - The dynamical matrix $\mathbf{D}$ is a Fourier transform of
+     $\mathbf{\Phi}$ that also accounts for mass
+   - The eigenvalue problem
+     $$\omega^2(\mathbf{q})\epsilon(\mathbf{q}) = \mathbf{D}(\mathbf{q})\epsilon(\mathbf{q})$$
+     can then be solved (where $\epsilon$ is a mass-weighted collective displacement)
+     to yield frequencies and eigenvectors
+   - Vibrational movement is treated as a linear combination of these orthogonal "modes"
+
 ** The direct method
+   - Sometimes referred to as the "supercell" or "finite displacement" method
+   - Assemble the force constant matrix directly using Hooke's law
+   - Make finite diplacements in each direction and compute force with /ab initio/ methods.
+     - Use a supercell to get meaningful interactions with periodic images
+     - Use symmetry to reduce number of displacements required
+
+   [[./diagrams/direct-method.svg]]
 
 ** Density functional perturbation theory
+   - In principle this is "the clever way"
+   - DFT reformulated to obtain response to perturbations in ionic position
+     - obtain force constants (second derivative in energy)
+     - calculation cost increases with each perturbation considered
+   - Implementation is complex. Legends of DFPT are
+     - Stefano Baroni (SISSA, Quantum Espresso)
+     - Xavier Gonze (UCLouvain, Abinit)
+
 
 ** Pros/cons
 
@@ -221,17 +299,129 @@
 
 * Imaginary modes and zone-boundary transitions
 
+** Imaginary modes
+   - Sometimes you will find "negative" frequencies on plot. What does this mean?
+     - $\omega$ is actually an imaginary number!
+     - $\omega^2 < 0$
+     - Restoring force along the mode is negative
+     - Structure "wants" to move away from initial lattice
+
+   #+REVEAL: split
+   - At Γ, imaginary mode usually means your structure is not correctly optimised
+   - Displacement managed to lower energy
+
+   #+ATTR_HTML: :width 70%
+     [[./diagrams/bad-displacement.svg]]
+
+   #+REVEAL: split
+   Imaginary modes /close to/ Γ are generally associated with
+   calculation accuracy problems.
+   - Basis-set / k-point convergence
+   - Supercell size
+   - FFT grids
+
+   #+ATTR_HTML: :width 50%
+   [[./plots/skelton-softmodes.png]]
+   
+   Jonathan Skelton has some helpful slides on these issues
+    https://www.slideshare.net/jmskelton/phonons-phonopy-pro-tips-2015
+
 ** Case study: Methylammonium lead iodide
    - Indicate ordering over multiple unit cells
-   - To find ground state, build a supercell and follow the mode
 
    #+ATTR_HTML: :width 80%
    [[./plots/whalley2017.jpg]]
 
    /Whalley et al. (2017) J. Chem. Phys. **146** 220901/
 
+
+** How to find zone-boundary ground states
+   - Build a supercell which is commensurate with the wave vector
+     - e.g. if soft mode is around (0.5 0 0.5), you need a $2\times1\times2$ supercell
+   - Give it a "nudge" along the mode and perform local optimisation from there
+   - Phonopy's MODULATION feature is helpful for setting these calculations up
+   - Compare the energy of the new supercell to your original structure
+   - Try calculating phonons again with the new structure...
+
+* The phonon DOS
+  - The phonon DOS is a distribution of accessible vibrational states
+  - Occupied with a thermal distribution of quantised excitations: "phonons"
+    - Like electronic DOS, which follows Fermi-Dirac statistics
+      - (electrons are fermions)
+    - Phonon DOS is occupied by Bose-Einstein distribution
+      - (phonons are bosons)
+
+  #+REVEAL: split
+
+  - This distribution of states is used in thermodynamic partition functions
+    - vibrational energy as a function of temperature
+    - related by calculus to heat capacity, entropy, free energy
+  - Phonopy helpfully does this for us
+
+  #+REVEAL: split
+
+  - Vibrational properties of zinc blende and wurtzite phases of ZnS
+    are different
+    - Wurtzite phase is higher in energy
+    - Wurtzite phase has higher vib entropy, free energy drops faster
+      with T
+
+  #+REVEAL: split
+  - We can predict phase transition by plotting free energy vs
+    temperature, including difference in formation energy
+
 * Dealing with anharmonicity: QHA
 
+  - Real potential energy surfaces are not symmetric
+  - As atoms move more, their average location moves to the shallow
+    side of the well
+  - This drives thermal expansion
+
+  #+REVEAL: split
+  - In the quasi-harmonic approximation (QHA), we consider the effect
+    of thermal expansion on the otherwise harmonic vibration model
+  - Force constants are recalculated at different volumes
+
+    #+ATTR_HTML: :width 50%
+    [[./plots/zao-qha.png]]
+
+  #+REVEAL: split  
+  - Helmholtz free energy ($A$) is computed vs temperature for each volume
+  - At a given temperature, the structure should minimise $A$ at equilibrium
+    - Competing volumes are just like competing phases (with easier kinetics!)
+  - Interpolate between calculated volumes to obtain equation of state
+
+   #+REVEAL_HTML: <div class="column" style="float:left; width: 50%">
+   #+ATTR_HTML: :width 60%
+   [[./plots/zao-helmholtz.png]]
+   #+REVEAL_HTML: </div>
+
+   #+REVEAL_HTML: <div class="column" style="float:left; width: 50%">
+   #+ATTR_HTML: :width 80%
+   [[./plots/zao-expansion.svg]]
+   #+REVEAL_HTML: </div>
+
+  #+REVEAL: split
+  - The quasi-harmonic approximation (QHA) tends to improve the accuracy of
+    thermodynamic property calculations
+  - QHA also provides very useful qualitative information about how
+    phase transitions relate to thermal expansion
+  - In practice it seems to improve accuracy of calculated frequencies
+  - However, it ultimately works by representing anharmonic wells with
+    softer harmonic wells. It will break down if atoms are truly
+    moving in interesting asymmetric ways.
+
 * Dealing with anharmonicity: higher-order phonons
+  - An alternative approach to anharmonicity is to consider the
+    harmonic approximation as the first part of a Taylor expansion
+  - In this case, the higher-order terms represent interactions
+    between the lower-order terms
+  - In the limit of a complete series, this would completely cover
+    anharmonicity
+    - It is not guaranteed that using a truncated series will help
+    - We have to truncate the series for practical calculations
+  - Phonon-phonon interactions are generally computed when we are
+    interested in their scattering effects
+    - e.g. when predicting thermal conductivity
 
 * Summary
