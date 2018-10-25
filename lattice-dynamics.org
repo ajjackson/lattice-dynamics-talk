@@ -55,6 +55,10 @@
      repeating unit of nominal atom sites
    - These methods cannot be applied to liquids/gases, and are
      difficult to apply to amorphous systems
+   - For a wider range of systems we can use molecular dynamics
+     - but MD results converge slowly over many samples
+     - whereas lattice models give exact solutions
+
 
 * Phonon band structures
 
@@ -297,6 +301,16 @@
 
    - Both methods can be managed with Phonopy
 
+** Model fitting
+   - Rather than sampling displacements individually with /ab initio/
+     calculations, a model can be fitted from experimental data and/or
+     calculations
+   - Interatomic forcefield parameters can be fitted to data and then
+     used with the "direct" method (e.g. using GULP)
+   - Alternatively the force constant matrix can be fitted directly by
+     sampling from an ensemble of displacements
+     - This method is implemented in TDEP
+
 * Imaginary modes and zone-boundary transitions
 
 ** Imaginary modes
@@ -424,4 +438,23 @@
     interested in their scattering effects
     - e.g. when predicting thermal conductivity
 
+
 * Summary
+  - Lattice dynamics describe collective movements in a crystal
+  - This determines:
+    - Measurable IR/Raman frequencies
+    - Thermochemistry (Temperature-dependent potentials)
+    - Dynamic stability / phase transitions
+  - And opens the way to
+    - Thermal conductivity (need higher-order terms)
+    - Raman intensities (need mode-dependent polarisability)
+
+  #+REVEAL: split
+  - A range of calculation methods are available
+    - Very sensitive; need precise of forces and optimisation
+    - If forcefield available, GULP is cheap!
+  - Generally start with harmonic approximation, Phonopy
+    - Supercell method or DFPT, depending on unit cell size
+  - QHA improves accuracy for ~ factor 10 in cost
+  - Phono3py gives more information for MUCH greater cost
+  - Still experimenting with TDEP
