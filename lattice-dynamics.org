@@ -344,31 +344,151 @@
    - Try calculating phonons again with the new structure...
 
 * The phonon DOS
-  - The phonon DOS is a distribution of accessible vibrational states
-  - Occupied with a thermal distribution of quantised excitations: "phonons"
-    - Like electronic DOS, which follows Fermi-Dirac statistics
-      - (electrons are fermions)
-    - Phonon DOS is occupied by Bose-Einstein distribution
-      - (phonons are bosons)
 
-  #+REVEAL: split
+** Phonon DOS
+   - The phonon DOS is a distribution of accessible vibrational states
+   - Occupied with a thermal distribution of quantised excitations: "phonons"
+     - Like electronic DOS, which follows Fermi-Dirac statistics
+       - (electrons are fermions)
+     - Phonon DOS is occupied by Bose-Einstein distribution
+       - (phonons are bosons)
 
-  - This distribution of states is used in thermodynamic partition functions
-    - vibrational energy as a function of temperature
-    - related by calculus to heat capacity, entropy, free energy
-  - Phonopy helpfully does this for us
+** Projected phonon DOS
+   - Projected DOS (PDOS) can also be constructed
+     - weighting assigned using mode eigenvectors
+     - tells us what is moving in which frequency range
+   - Less informative than dispersion plot and inspecting eigenvectors
+     - but much easier to interpret in busy system
 
-  #+REVEAL: split
+  [[./plots/zns_pdos.svg]]
 
-  - Vibrational properties of zinc blende and wurtzite phases of ZnS
-    are different
-    - Wurtzite phase is higher in energy
-    - Wurtzite phase has higher vib entropy, free energy drops faster
-      with T
 
-  #+REVEAL: split
-  - We can predict phase transition by plotting free energy vs
-    temperature, including difference in formation energy
+** Stat mechs
+
+   - This distribution of states is used in thermodynamic partition functions
+     - vibrational energy as a function of temperature
+     - related by calculus to heat capacity, entropy, free energy
+
+    #+REVEAL_HTML: <div class="column" style="float:left; width: 50%">
+    Zinc blende
+    #+ATTR_HTML: :width 60%
+    [[./plots/zincblende_band_dos.svg]]
+    #+REVEAL_HTML: </div>
+
+    #+REVEAL_HTML: <div class="column" style="float:right; width: 50%">
+    Wurtzite
+    #+ATTR_HTML: :width 60%
+    [[./plots/wurtzite_band_dos.svg]]
+    #+REVEAL_HTML: </div>
+
+   #+REVEAL: split
+
+   - Vibrational properties of zinc blende and wurtzite phases of ZnS
+     are different
+     - Wurtzite phase is higher in energy
+     - Compare vib entropy, free energy relationship with T
+
+   #+BEGIN_SRC python :exports results :results file
+     filename = 'plots/thermal.svg'
+     import yaml
+     import matplotlib.pyplot as plt
+
+     plt.figure(figsize=(6, 3))
+
+     for i, phase in enumerate(('zincblende', 'wurtzite')):
+         plt.subplot(1, 2, i + 1)
+
+         with open('plots/{}_thermal.yaml'.format(phase), 'r') as f:
+             data = yaml.load(f)
+
+         T_A_S_Cv_U = [(x['temperature'], x['free_energy'], x['entropy'],
+                        x['heat_capacity'], x['energy'])
+                           for x in data['thermal_properties']]
+
+         T, A, S, Cv, U = zip(*T_A_S_Cv_U)
+
+         if phase == 'zincblende':
+             scale = 1
+         elif phase == 'wurtzite':
+             scale = 0.5
+         else:
+             raise Exception()        
+
+         for v, label in ((A, 'Free energy / kJ/mol'),
+                          (S, 'Entropy / J/K/mol'),
+                          (Cv, 'Heat capacity / J/K/mol'),
+                          (U, 'Energy / kJ/mol')):
+             plt.plot(T, [y * scale for y in v], label=label)
+
+         plt.ylim(-80, 140)
+         plt.xlim(0, 1000)
+         plt.xlabel('Temperature / K')
+         plt.title(phase)
+
+         plt.legend(loc='above')
+     plt.tight_layout()
+
+     plt.savefig(filename)
+
+     return filename
+   #+END_SRC
+
+   #+RESULTS:
+   [[file:plots/thermal.svg]]
+
+   #+REVEAL: split
+   - We can predict phase transition by plotting free energy vs
+     temperature, including difference in formation energy
+
+   #+BEGIN_SRC python :exports results :results file
+          filename = 'plots/zincblend_to_wurtzite.svg'
+          import yaml
+          import matplotlib.pyplot as plt
+          from scipy.constants import physical_constants, N_A
+
+          plt.figure(figsize=(6, 3))
+
+          for phase in ('zincblende', 'wurtzite'):
+
+              with open('plots/{}_thermal.yaml'.format(phase), 'r') as f:
+                  data = yaml.load(f)
+
+              T_A = [(x['temperature'], x['free_energy'])
+                                for x in data['thermal_properties']]
+
+              T, A = zip(*T_A)
+
+              if phase == 'zincblende':
+                  scale = 1
+                  toten = -7.58677035
+              elif phase == 'wurtzite':
+                  scale = 0.5        
+                  toten = -15.16417449
+              else:
+                  raise Exception()        
+
+              toten = (toten *
+                       scale * N_A * 1e-3 *
+                       physical_constants['electron volt-joule relationship'][0])
+
+              plt.plot(T, [y * scale + toten for y in A], label=phase)
+
+              plt.xlim(0, 1000)
+              plt.xlabel('Temperature / K')
+              plt.ylabel('Free energy / kJ/mol')
+
+              plt.legend(loc='best')
+          plt.tight_layout()
+
+          plt.savefig(filename)
+
+          return filename
+   #+END_SRC
+
+   #+RESULTS:
+   [[file:plots/zincblend_to_wurtzite.svg]]
+
+   - In this case, it doesn't seem sufficient to drive the phase transition!
 
 * Dealing with anharmonicity: QHA
 
